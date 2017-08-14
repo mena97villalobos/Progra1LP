@@ -15,11 +15,11 @@ struct nodo* ultimoNodo(struct nodo* primerNodo);
 bool estaEnCamino(int valor, struct nodo* Resultado);
 struct nodo* encontrarCaminos(struct grafo* grafo, int destino, struct nodo* Resultado);
 struct nodo* ultimoNodo(struct nodo* primerNodo);
-struct nodo* desencolar(struct nodo* primerNodo, int valor);
 void insertarResultado(struct resultado* res, struct nodo* camino);
+struct resultado* crearResultado(struct nodo* camino);
+struct nodo* retornarCamino(struct nodo *primerNodo, int valor);
 void findPath(struct grafo* grafo, int siguienteCamino, struct nodo* caminos, struct resultado* resultado);
 //***************************************************************************************
-
 //Estructuras utilizada******************************************************************
 struct nodo {
   int valor;
@@ -43,9 +43,7 @@ struct resultado{
     struct resultado* siguiente;
     int size;
 };
-
 //***************************************************************************************
-
 //Funciones de estructuras***************************************************************
 int insertarNodo(struct grafo* grafo, int valorArista, int valorCamino){
     if(grafo->size == 0){//Caso: el grafo esta vacio
@@ -103,6 +101,7 @@ int insertarNodoAux(struct nodo* lista, int valor){
     }
 }
 
+//Retorna los caminos a los que puede ir valor
 struct nodo* buscar(int valor, struct grafo* grafo){
     struct nodoGrafo* temporal = grafo->primerNodo;
     while(temporal != NULL){
@@ -131,6 +130,7 @@ struct nodoGrafo* crearNodoGrafo(int valorArista){
     return nodoGrafo;
 }
 
+//Retorna ultimo nodo de la lista
 struct nodo* ultimoNodo(struct nodo* primerNodo){
     while(primerNodo->siguente != NULL){
         primerNodo = primerNodo->siguente;
@@ -138,6 +138,7 @@ struct nodo* ultimoNodo(struct nodo* primerNodo){
     return primerNodo;
 }
 
+//Revisar si un nodo esta en el camino
 bool estaEnCamino(int valor, struct nodo* Resultado){
     struct nodo* tmp = Resultado;
     while (tmp != NULL) {
@@ -150,35 +151,6 @@ bool estaEnCamino(int valor, struct nodo* Resultado){
     }
     return false;
 }
-//***************************************************************************************
-
-int main(){
-    //variables intermedias para pasar la entrada al grafo
-    int incendio, u, v;
-
-    struct grafo* grafo;//Crear el grafo para representar las esquinas y los caminos posibles
-    grafo = (struct grafo*) malloc(sizeof(struct grafo));
-    grafo->size = 0;
-    grafo->primerNodo = NULL;
-    scanf("%d", &incendio);
-    scanf("%d%d", &u, &v);
-    grafo->destino = incendio;
-    while(u != 0 && v != 0){
-        //Los insertar estan para hacer el grafo no dirigido
-        insertarNodo(grafo, u, v);
-        insertarNodo(grafo, v, u);
-        scanf("%d%d", &u, &v);
-    }
-    struct nodo* caminos = crearNodo(grafo->destino);
-
-    struct resultado* resultado = (struct resultado*) malloc(sizeof(struct resultado));
-    resultado->camino = NULL;
-    resultado->siguiente = NULL;
-    resultado->size = 0;
-    findPath(grafo, grafo->destino, caminos, resultado);
-    printf("%d", resultado->size);
-    return 0;
-}
 
 void insertarResultado(struct resultado* res, struct nodo* camino){
     if(res->camino == NULL){
@@ -186,20 +158,24 @@ void insertarResultado(struct resultado* res, struct nodo* camino){
         res->size++;
     }
     else{
-        struct resultado* resultado = (struct resultado*) malloc(sizeof(struct resultado));
-        resultado->camino = camino;
-        resultado->siguiente = NULL;
-        resultado->size = 0;
         struct resultado* tmp = res;
         while(tmp->siguiente != NULL){
             tmp = tmp->siguiente;
         }
-        tmp->siguiente = resultado;
+        tmp->siguiente = crearResultado(camino);
         res->size++;
     }
 }
 
-struct nodo* desencolar(struct nodo* primerNodo, int valor){
+struct resultado* crearResultado(struct nodo* camino){
+    struct resultado* resultado = (struct resultado*) malloc(sizeof(struct resultado));
+    resultado->camino = camino;
+    resultado->siguiente = NULL;
+    resultado->size = 0;
+    return resultado;
+}
+
+struct nodo* retornarCamino(struct nodo *primerNodo, int valor){
     struct nodo* nueva = crearNodo(primerNodo->valor);
     struct nodo* tmp = nueva;
     if(valor!=nueva->valor){
@@ -219,22 +195,26 @@ struct nodo* desencolar(struct nodo* primerNodo, int valor){
     }
     return nueva;
 }
-
-
+//***************************************************************************************
 void findPath(struct grafo* grafo, int siguienteCamino, struct nodo* caminos, struct resultado* resultado){
     struct nodo* ultimo = ultimoNodo(caminos);
     if(ultimo->valor == 1){
+        //Guardar el camino en resultado
         insertarResultado(resultado, caminos);
     }
     else{
         struct nodo* listaCaminos = buscar(siguienteCamino, grafo);//lista de caminos
         while(listaCaminos != NULL){
+            //Revisar que el nodo no este en el camino actual
             if(!estaEnCamino(listaCaminos->valor, caminos)){
                 ultimo->siguente = crearNodo(listaCaminos->valor);
+                //Recursividad para revisar todos los caminos desde un nodo
                 findPath(grafo, listaCaminos->valor, caminos, resultado);
-                caminos = desencolar(caminos, siguienteCamino);
+                //Resetear las variables al estado del ciclo
+                caminos = retornarCamino(caminos, siguienteCamino);
                 ultimo = ultimoNodo(caminos);
                 listaCaminos = listaCaminos->siguente;
+                //
             }
             else{
                 listaCaminos = listaCaminos->siguente;
@@ -243,20 +223,24 @@ void findPath(struct grafo* grafo, int siguienteCamino, struct nodo* caminos, st
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+int main(){
+    //variables intermedias para pasar la entrada al grafo
+    int u, v;
+    struct grafo* grafo;//Crear el grafo para representar las esquinas y los caminos posibles
+    grafo = (struct grafo*) malloc(sizeof(struct grafo));
+    grafo->size = 0;
+    grafo->primerNodo = NULL;
+    scanf("%d", &grafo->destino);
+    scanf("%d%d", &u, &v);
+    while(u != 0 && v != 0){
+        //Los insertar estan para hacer el grafo no dirigido
+        insertarNodo(grafo, u, v);
+        insertarNodo(grafo, v, u);
+        scanf("%d%d", &u, &v);
+    }
+    struct nodo* caminos = crearNodo(grafo->destino);
+    struct resultado* resultado = crearResultado(NULL);
+    findPath(grafo, grafo->destino, caminos, resultado);
+    printf("%d", resultado->size);
+    return 0;
+}
