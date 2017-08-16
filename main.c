@@ -18,6 +18,7 @@ struct nodo* ultimoNodo(struct nodo* primerNodo);
 void insertarResultado(struct resultado* res, struct nodo* camino);
 struct resultado* crearResultado(struct nodo* camino);
 struct nodo* retornarCamino(struct nodo *primerNodo, int valor);
+void imprimirResultado(struct resultado* resultado, int destino);
 void findPath(struct grafo* grafo, int siguienteCamino, struct nodo* caminos, struct resultado* resultado);
 //***************************************************************************************
 //Estructuras utilizada******************************************************************
@@ -198,7 +199,7 @@ struct nodo* retornarCamino(struct nodo *primerNodo, int valor){
 //***************************************************************************************
 void findPath(struct grafo* grafo, int siguienteCamino, struct nodo* caminos, struct resultado* resultado){
     struct nodo* ultimo = ultimoNodo(caminos);
-    if(ultimo->valor == 1){
+    if(ultimo->valor == grafo->destino){
         //Guardar el camino en resultado
         insertarResultado(resultado, caminos);
     }
@@ -223,6 +224,26 @@ void findPath(struct grafo* grafo, int siguienteCamino, struct nodo* caminos, st
     }
 }
 
+void imprimirResultado(struct resultado* resultado, int destino){
+    printf("Hay ");
+    printf("%d",resultado->size);
+    printf("  rutas desde la estacion de bomberos hasta la esquina ");
+    printf("%d", destino);
+    printf("\n");
+    while (resultado != NULL) {
+        struct nodo* camino = resultado->camino;
+        while(camino != NULL){
+            printf("%d", camino->valor);
+            if(camino->siguente != NULL){
+                printf(" ");
+            }
+            camino = camino->siguente;
+        }
+        printf("\n");
+        resultado = resultado->siguiente;
+    }
+}
+
 int main(){
     //variables intermedias para pasar la entrada al grafo
     int u, v;
@@ -238,9 +259,9 @@ int main(){
         insertarNodo(grafo, v, u);
         scanf("%d%d", &u, &v);
     }
-    struct nodo* caminos = crearNodo(grafo->destino);
+    struct nodo* caminos = crearNodo(1);
     struct resultado* resultado = crearResultado(NULL);
-    findPath(grafo, grafo->destino, caminos, resultado);
-    printf("%d", resultado->size);
+    findPath(grafo, 1, caminos, resultado);
+    imprimirResultado(resultado, grafo->destino);
     return 0;
 }
