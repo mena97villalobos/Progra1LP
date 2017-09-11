@@ -18,7 +18,7 @@ struct nodo* ultimoNodo(struct nodo* primerNodo);
 void insertarResultado(struct resultado* res, struct nodo* camino);
 struct resultado* crearResultado(struct nodo* camino);
 struct nodo* retornarCamino(struct nodo *primerNodo, int valor);
-void imprimirResultado(struct resultado* resultado, int destino);
+void imprimirResultado(struct resultado* resultado, int destino, int iteracion);
 void findPath(struct grafo* grafo, int siguienteCamino, struct nodo* caminos, struct resultado* resultado);
 //***************************************************************************************
 //Estructuras utilizada******************************************************************
@@ -224,7 +224,10 @@ void findPath(struct grafo* grafo, int siguienteCamino, struct nodo* caminos, st
     }
 }
 
-void imprimirResultado(struct resultado* resultado, int destino){
+void imprimirResultado(struct resultado* resultado, int destino, int iteracion){
+    printf("CASO #");
+    printf("%d",iteracion);
+    printf(":\n");
     printf("Hay ");
     printf("%d",resultado->size);
     printf("  rutas desde la estacion de bomberos hasta la esquina ");
@@ -242,6 +245,7 @@ void imprimirResultado(struct resultado* resultado, int destino){
         printf("\n");
         resultado = resultado->siguiente;
     }
+    printf("\n");
 }
 
 int main(){
@@ -251,17 +255,41 @@ int main(){
     grafo = (struct grafo*) malloc(sizeof(struct grafo));
     grafo->size = 0;
     grafo->primerNodo = NULL;
-    scanf("%d", &grafo->destino);
-    scanf("%d%d", &u, &v);
-    while(u != 0 && v != 0){
-        //Los insertar estan para hacer el grafo no dirigido
-        insertarNodo(grafo, u, v);
-        insertarNodo(grafo, v, u);
-        scanf("%d%d", &u, &v);
+
+    // --------------------------------------------------------
+    int iteracion = 1; //Lleva el control para cuando se imprime: "CASO #iteracion"
+
+    FILE *file;
+    file = fopen("/Users/macretinai7/Desktop/Progra1LP/entradas.txt", "r");
+    if (file == NULL) {
+            printf("Error: No se puede encontrar el archivo con las entradas.\n");
+            exit(1);
     }
-    struct nodo* caminos = crearNodo(1);
-    struct resultado* resultado = crearResultado(NULL);
-    findPath(grafo, 1, caminos, resultado);
-    imprimirResultado(resultado, grafo->destino);
+    if (file) {
+        while (!feof(file)){
+
+            fscanf(file,"%d", &grafo->destino);
+            fscanf(file, "%d%d", &u, &v);
+
+            while(u != 0 && v != 0){
+                //Los insertar estan para hacer el grafo no dirigido
+                insertarNodo(grafo, u, v);
+                insertarNodo(grafo, v, u);
+                fscanf(file, "%d%d", &u, &v);
+            }
+
+            struct nodo* caminos = crearNodo(1);
+            struct resultado* resultado = crearResultado(NULL);
+            findPath(grafo, 1, caminos, resultado);
+            imprimirResultado(resultado, grafo->destino, iteracion);
+            iteracion++;
+
+            //Restart del grafo
+            grafo = (struct grafo*) malloc(sizeof(struct grafo));
+            grafo->size = 0;
+            grafo->primerNodo = NULL;
+        }
+    }
+    fclose(file);
     return 0;
 }
