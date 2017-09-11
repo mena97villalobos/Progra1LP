@@ -1,3 +1,13 @@
+﻿//****************************************\\
+//				Tarea Programada 1 		  \\
+//				Grupo 8					  \\
+//				Daniel Delgado			  \\
+//				Wilbert Gonzales		  \\
+//				Anthony Leandro			  \\
+//				Bryan Mena                \\
+//				Septiembre 2017			  \\
+//****************************************\\
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -258,9 +268,11 @@ int main(){
 
     // --------------------------------------------------------
     int iteracion = 1; //Lleva el control para cuando se imprime: "CASO #iteracion"
-
+    char fnamer[100]="";
+    printf("\n\nIngrese el path completo del archivo de pruebas: \n");
+    scanf("%s",&fnamer);
     FILE *file;
-    file = fopen("/Users/macretinai7/Desktop/Progra1LP/entradas.txt", "r");
+    file = fopen(fnamer, "r");
     if (file == NULL) {
             printf("Error: No se puede encontrar el archivo con las entradas.\n");
             exit(1);
